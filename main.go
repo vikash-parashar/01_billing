@@ -50,13 +50,11 @@ func main() {
 	r.Put("/insured/{id}", handlers.UpdateInsuredByIDHandler)
 	r.Delete("/insured/{id}", handlers.DeleteInsuredByIDHandler)
 
-
 	r.Get("/contact", handlers.GetAllContactHandler)
 	r.Post("/contact", handlers.CreateContactHandler)
 	r.Get("/contact/{id}", handlers.GetContactByIDHandler)
 	r.Put("/contact/{id}", handlers.UpdateContactByIDHandler)
 	r.Delete("/contact/{id}", handlers.DeleteContactByIDHandler)
-
 
 	// All CRUD operations for contact
 	r.Get("/contacts/{id}/insured", handlers.GetAllInsuredHandler)
@@ -73,11 +71,11 @@ func main() {
 	r.Get("/contacts/{id}/payment-methods", handlers.GetAllPaymentMethodsForContactHandler)
 
 	// CRUD endpoints for insured payment
-	r.Post("/insured/{id}/payment-methods", handlers.CreatePaymentMethodForInsuredHandler)
-	r.Put("/insured/{id}/payment-methods/{methodId}", handlers.UpdatePaymentMethodForInsuredHandler)
-	r.Delete("/insured/{id}/payment-methods/{methodId}", handlers.DeletePaymentMethodForInsuredHandler)
-	r.Get("/insured/{id}/payment-methods/{methodId}", handlers.GetPaymentMethodForInsuredHandlerByMethodID)
-	r.Get("/insured/{id}/payment-methods", handlers.GetAllPaymentMethodsForInsuredHandler)
+	// r.Post("/insured/{id}/payment-methods", handlers.CreatePaymentMethodForInsuredHandler)
+	// r.Put("/insured/{id}/payment-methods/{methodId}", handlers.UpdatePaymentMethodForInsuredHandler)
+	// r.Delete("/insured/{id}/payment-methods/{methodId}", handlers.DeletePaymentMethodForInsuredHandler)
+	// r.Get("/insured/{id}/payment-methods/{methodId}", handlers.GetPaymentMethodForInsuredHandlerByMethodID)
+	// r.Get("/insured/{id}/payment-methods", handlers.GetAllPaymentMethodsForInsuredHandler)
 
 	// Run the application
 	log.Fatalln(http.ListenAndServe(":"+appPort, r))
