@@ -23,7 +23,6 @@ func GetAllInsureds() ([]models.Insured, error) {
 			&insured.DateOfBirth,
 			&insured.Address,
 			&insured.City,
-			&insured.Country,
 			&insured.State,
 			&insured.ZipCode,
 		)
@@ -39,9 +38,9 @@ func GetAllInsureds() ([]models.Insured, error) {
 func CreateInsured(insured models.Insured) (models.Insured, error) {
 	query := `
 		INSERT INTO insureds 
-		(contact_id, full_name, date_of_birth, address, city, country, state, postal_code) 
+		(contact_id, full_name, date_of_birth, address, city, state, postal_code) 
 		VALUES 
-		($1, $2, $3, $4, $5, $6, $7, $8)
+		($1, $2, $3, $4, $5, $6, $7)
 		RETURNING id`
 
 	err := db.QueryRow(
@@ -51,7 +50,6 @@ func CreateInsured(insured models.Insured) (models.Insured, error) {
 		insured.DateOfBirth,
 		insured.Address,
 		insured.City,
-		insured.Country,
 		insured.State,
 		insured.ZipCode,
 	).Scan(&insured.ID)
@@ -72,7 +70,6 @@ func GetInsuredByID(insuredID int) (models.Insured, error) {
 		&insured.DateOfBirth,
 		&insured.Address,
 		&insured.City,
-		&insured.Country,
 		&insured.State,
 		&insured.ZipCode,
 	)
@@ -92,12 +89,11 @@ func UpdateInsuredByID(insuredID int, updatedInsured models.Insured) (models.Ins
 			full_name=$2, 
 			date_of_birth=$3, 
 			address=$4, 
-			city=$5, 
-			country=$6, 
-			state=$7, 
-			postal_code=$8
+			city=$5,  
+			state=$6, 
+			postal_code=$7
 		WHERE 
-			id=$9
+			id=$8
 		RETURNING id`
 
 	err := db.QueryRow(
@@ -107,7 +103,6 @@ func UpdateInsuredByID(insuredID int, updatedInsured models.Insured) (models.Ins
 		updatedInsured.DateOfBirth,
 		updatedInsured.Address,
 		updatedInsured.City,
-		updatedInsured.Country,
 		updatedInsured.State,
 		updatedInsured.ZipCode,
 		insuredID,
@@ -142,7 +137,6 @@ func GetAllInsuredsByContactID(contactID int) ([]models.Insured, error) {
 			&insured.DateOfBirth,
 			&insured.Address,
 			&insured.City,
-			&insured.Country,
 			&insured.State,
 			&insured.ZipCode,
 		)
@@ -158,9 +152,9 @@ func GetAllInsuredsByContactID(contactID int) ([]models.Insured, error) {
 func CreateInsuredByContactID(contactID int, insured models.Insured) (models.Insured, error) {
 	query := `
 		INSERT INTO insureds 
-		(contact_id, full_name, date_of_birth, address, city, country, state, postal_code) 
+		(contact_id, full_name, date_of_birth, address, city, state, postal_code) 
 		VALUES 
-		($1, $2, $3, $4, $5, $6, $7, $8)
+		($1, $2, $3, $4, $5, $6, $7)
 		RETURNING id`
 
 	err := db.QueryRow(
@@ -170,7 +164,6 @@ func CreateInsuredByContactID(contactID int, insured models.Insured) (models.Ins
 		insured.DateOfBirth,
 		insured.Address,
 		insured.City,
-		insured.Country,
 		insured.State,
 		insured.ZipCode,
 	).Scan(&insured.ID)
@@ -191,7 +184,6 @@ func GetInsuredByContactAndInsuredID(contactID, insuredID int) (models.Insured, 
 		&insured.DateOfBirth,
 		&insured.Address,
 		&insured.City,
-		&insured.Country,
 		&insured.State,
 		&insured.ZipCode,
 	)
@@ -211,11 +203,10 @@ func UpdateInsuredByContactAndInsuredID(contactID, insuredID int, updatedInsured
 			date_of_birth=$2, 
 			address=$3, 
 			city=$4, 
-			country=$5, 
-			state=$6, 
-			postal_code=$7
+			state=$5, 
+			postal_code=$6
 		WHERE 
-			contact_id=$8 AND id=$9
+			contact_id=$7 AND id=$8
 		RETURNING id`
 
 	err := db.QueryRow(
@@ -224,7 +215,6 @@ func UpdateInsuredByContactAndInsuredID(contactID, insuredID int, updatedInsured
 		updatedInsured.DateOfBirth,
 		updatedInsured.Address,
 		updatedInsured.City,
-		updatedInsured.Country,
 		updatedInsured.State,
 		updatedInsured.ZipCode,
 		contactID,

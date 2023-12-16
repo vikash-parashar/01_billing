@@ -3,6 +3,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 	"strconv"
 
@@ -31,6 +32,28 @@ func CreateNewPayment(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
+	}
+
+	// Check if RelationshipToInsured is not "self" and PaymentType is "Insurance"
+	if newPayment.RelationshipToInsured != "self" && newPayment.PaymentType == "Insurance" {
+		// Create a new Insured
+		insured := models.Insured{
+			ContactID:   newPayment.ContactID,
+			FullName:    newPayment.InsuredFullName,
+			DateOfBirth: newPayment.DOBOfInsured,
+			Address:     newPayment.AddressOfInsured,
+			City:        newPayment.CityOfInsured,
+			State:       newPayment.StateOfInsured,
+			ZipCode:     newPayment.ZipCodeOfInsured,
+		}
+
+		createdInsured, err := controllers.CreateInsuredByContactID(newPayment.ContactID, insured)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		newPayment.InsuredID = strconv.Itoa(createdInsured.ID)
+		log.Printf("new insured person is created with id : %d", newPayment.ID)
 	}
 
 	json.NewEncoder(w).Encode(newPayment)
@@ -128,6 +151,28 @@ func CreateNewPaymentByContactID(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
+	}
+
+	// Check if RelationshipToInsured is not "self" and PaymentType is "Insurance"
+	if newPayment.RelationshipToInsured != "self" && newPayment.PaymentType == "Insurance" {
+		// Create a new Insured
+		insured := models.Insured{
+			ContactID:   newPayment.ContactID,
+			FullName:    newPayment.InsuredFullName,
+			DateOfBirth: newPayment.DOBOfInsured,
+			Address:     newPayment.AddressOfInsured,
+			City:        newPayment.CityOfInsured,
+			State:       newPayment.StateOfInsured,
+			ZipCode:     newPayment.ZipCodeOfInsured,
+		}
+
+		createdInsured, err := controllers.CreateInsuredByContactID(newPayment.ContactID, insured)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		newPayment.InsuredID = strconv.Itoa(createdInsured.ID)
+		log.Printf("new insured person is created with id : %d", newPayment.ID)
 	}
 
 	json.NewEncoder(w).Encode(newPayment)
@@ -246,6 +291,29 @@ func CreateNewPaymentByInsuredID(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
+	}
+
+	// Check if RelationshipToInsured is not "self" and PaymentType is "Insurance"
+	if newPayment.RelationshipToInsured != "self" && newPayment.PaymentType == "Insurance" {
+		// Create a new Insured
+		insured := models.Insured{
+			ContactID:   newPayment.ContactID,
+			FullName:    newPayment.InsuredFullName,
+			DateOfBirth: newPayment.DOBOfInsured,
+			Address:     newPayment.AddressOfInsured,
+			City:        newPayment.CityOfInsured,
+			State:       newPayment.StateOfInsured,
+			ZipCode:     newPayment.ZipCodeOfInsured,
+		}
+
+		createdInsured, err := controllers.CreateInsuredByContactID(newPayment.ContactID, insured)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		newPayment.InsuredID = strconv.Itoa(createdInsured.ID)
+		log.Printf("new insured person is created with id : %d", newPayment.ID)
 	}
 
 	json.NewEncoder(w).Encode(newPayment)

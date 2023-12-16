@@ -7,7 +7,6 @@ type Insured struct {
 	DateOfBirth string `json:"date_of_birth"`
 	Address     string `json:"address"`
 	City        string `json:"city"`
-	Country     string `json:"country"`
 	State       string `json:"state"`
 	ZipCode     string `json:"postal_code"`
 }
