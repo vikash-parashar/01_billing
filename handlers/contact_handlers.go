@@ -1,100 +1,92 @@
+// handlers.go
 package handlers
 
 import (
 	"encoding/json"
 	"net/http"
+	"strconv"
 
 	"github.com/go-chi/chi"
-	"github.com/vikash-parashar/01_billing/models"
 	"github.com/vikash-parashar/01_billing/controllers"
+	"github.com/vikash-parashar/01_billing/models"
 )
 
-// GetAllContactHandler retrieves all contacts from the database.
-func GetAllContactHandler(w http.ResponseWriter, r *http.Request) {
+func GetAllContact(w http.ResponseWriter, r *http.Request) {
 	contacts, err := controllers.GetAllContacts()
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-
-	response, err := json.Marshal(contacts)
-	if err != nil {
-		http.Error(w, "Failed to serialize response", http.StatusInternalServerError)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	w.Write(response)
+	json.NewEncoder(w).Encode(contacts)
 }
 
-// CreateContactHandler creates a new contact.
-func CreateContactHandler(w http.ResponseWriter, r *http.Request) {
+func CreateNewContact(w http.ResponseWriter, r *http.Request) {
 	var contact models.Contact
-	err := json.NewDecoder(r.Body).Decode(&contact)
-	if err != nil {
-		http.Error(w, "Invalid request payload", http.StatusBadRequest)
+	if err := json.NewDecoder(r.Body).Decode(&contact); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	id, err := controllers.CreateContact(contact)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	w.WriteHeader(http.StatusCreated)
-	w.Write([]byte("Contact created successfully with ID: " + id))
-}
-
-// GetContactByIDHandler retrieves a specific contact by ID.
-func GetContactByIDHandler(w http.ResponseWriter, r *http.Request) {
-	id := chi.URLParam(r, "id")
-
-	contact, err := controllers.GetContactByID(id)
+	newContact, err := controllers.CreateContact(contact)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	response, err := json.Marshal(contact)
+	json.NewEncoder(w).Encode(newContact)
+}
+
+func GetContactByContactID(w http.ResponseWriter, r *http.Request) {
+	contactIDStr := chi.URLParam(r, "contactID")
+	contactID, err := strconv.Atoi(contactIDStr)
 	if err != nil {
-		http.Error(w, "Failed to serialize response", http.StatusInternalServerError)
+		http.Error(w, "Invalid contact ID", http.StatusBadRequest)
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	w.Write(response)
+	contact, err := controllers.GetContactByID(contactID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusNotFound)
+		return
+	}
+
+	json.NewEncoder(w).Encode(contact)
 }
 
-// UpdateContactByIDHandler updates a specific contact by ID.
-func UpdateContactByIDHandler(w http.ResponseWriter, r *http.Request) {
-	id := chi.URLParam(r, "id")
+func UpdateContactByContactID(w http.ResponseWriter, r *http.Request) {
+	contactIDStr := chi.URLParam(r, "contactID")
+	contactID, err := strconv.Atoi(contactIDStr)
+	if err != nil {
+		http.Error(w, "Invalid contact ID", http.StatusBadRequest)
+		return
+	}
 
 	var updatedContact models.Contact
-	err := json.NewDecoder(r.Body).Decode(&updatedContact)
-	if err != nil {
-		http.Error(w, "Invalid request payload", http.StatusBadRequest)
+	if err := json.NewDecoder(r.Body).Decode(&updatedContact); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	err = controllers.UpdateContactByID(id, updatedContact)
+	contact, err := controllers.UpdateContactByID(contactID, updatedContact)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(w, err.Error(), http.StatusNotFound)
 		return
 	}
 
-	w.WriteHeader(http.StatusNoContent)
+	json.NewEncoder(w).Encode(contact)
 }
 
-// DeleteContactByIDHandler deletes a specific contact by ID.
-func DeleteContactByIDHandler(w http.ResponseWriter, r *http.Request) {
-	id := chi.URLParam(r, "id")
-
-	err := controllers.DeleteContactByID(id)
+func DeleteContactByContactID(w http.ResponseWriter, r *http.Request) {
+	contactIDStr := chi.URLParam(r, "contactID")
+	contactID, err := strconv.Atoi(contactIDStr)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(w, "Invalid contact ID", http.StatusBadRequest)
+		return
+	}
+
+	err = controllers.DeleteContactByID(contactID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusNotFound)
 		return
 	}
 

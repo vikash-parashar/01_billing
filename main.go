@@ -44,38 +44,45 @@ func main() {
 
 	// Initialize the Chi router
 	r := chi.NewRouter()
-	r.Get("/insured", handlers.GetAllInsuredHandler)
-	r.Post("/insured", handlers.CreateInsuredHandler)
-	r.Get("/insured/{id}", handlers.GetInsuredByIDHandler)
-	r.Put("/insured/{id}", handlers.UpdateInsuredByIDHandler)
-	r.Delete("/insured/{id}", handlers.DeleteInsuredByIDHandler)
 
-	r.Get("/contact", handlers.GetAllContactHandler)
-	r.Post("/contact", handlers.CreateContactHandler)
-	r.Get("/contact/{id}", handlers.GetContactByIDHandler)
-	r.Put("/contact/{id}", handlers.UpdateContactByIDHandler)
-	r.Delete("/contact/{id}", handlers.DeleteContactByIDHandler)
+	r.Get("/contact", handlers.GetAllContact)
+	r.Post("/contact", handlers.CreateNewContact)
+	r.Get("/contact/{contactID}", handlers.GetContactByContactID)
+	r.Put("/contact/{contactID}", handlers.UpdateContactByContactID)
+	r.Delete("/contact/{contactID}", handlers.DeleteContactByContactID)
+
+	r.Get("/insured", handlers.GetAllInsured)
+	r.Post("/insured", handlers.CreateNewInsured)
+	r.Get("/insured/{insuredID}", handlers.GetInsuredByInsuredID)
+	r.Put("/insured/{insuredID}", handlers.UpdateInsuredByInsuredID)
+	r.Delete("/insured/{insuredID}", handlers.DeleteInsuredByInsuredID)
+
+	r.Get("/payment", handlers.GetAllPayments)
+	r.Post("/payment", handlers.CreateNewPayment)
+	r.Get("/payment/{paymentID}", handlers.GetPaymentByPaymentID)
+	r.Put("/payment/{paymentID}", handlers.UpdatePaymentByPaymentID)
+	r.Delete("/payment/{paymentID}", handlers.DeletePaymentByPaymentID)
 
 	// All CRUD operations for contact
-	r.Get("/contacts/{id}/insured", handlers.GetAllInsuredHandler)
-	r.Post("/contacts/{id}/insured", handlers.CreateInsuredHandler)
-	r.Get("/contacts/{id}/insured/{id}", handlers.GetInsuredByIDHandler)
-	r.Put("/contacts/{id}/insured/{id}", handlers.UpdateInsuredByIDHandler)
-	r.Delete("/contacts/{id}/insured/{id}", handlers.DeleteInsuredByIDHandler)
+	r.Get("/contacts/{contactID}/insured", handlers.GetAllInsuredByContactID)
+	r.Post("/contacts/{contactID}/insured", handlers.CreateNewInsuredByContactID)
+	r.Get("/contacts/{contactID}/insured/{insuredID}", handlers.GetInsuredByContactAndInsuredID)
+	r.Put("/contacts/{contactID}/insured/{insuredDd}", handlers.UpdateInsuredByContactAndInsuredID)
+	r.Delete("/contacts/{contactID}/insured/{insuredID}", handlers.DeleteInsuredByContactAndInsuredID)
 
 	// CRUD endpoints for contacts payment
-	r.Post("/contacts/{id}/payment-methods", handlers.CreatePaymentMethodHandler)
-	r.Put("/contacts/{id}/payment-methods/{methodId}", handlers.UpdatePaymentMethodHandler)
-	r.Delete("/contacts/{id}/payment-methods/{methodId}", handlers.DeletePaymentMethodHandler)
-	r.Get("/contacts/{id}/payment-methods/{methodId}", handlers.GetPaymentMethodHandlerByMethodID)
-	r.Get("/contacts/{id}/payment-methods", handlers.GetAllPaymentMethodsForContactHandler)
+	r.Post("/contact/{contactID}/payment", handlers.CreateNewPaymentByContactID)
+	r.Put("/contact/{contactID}/payment/{paymentID}", handlers.UpdatePaymentByContactAndPaymentID)
+	r.Delete("/contact/{contactID}/payment/{paymentID}", handlers.DeletePaymentByContactAndPaymentID)
+	r.Get("/contact/{contactID}/payment/{paymentID}", handlers.GetPaymentByContactAndPaymentID)
+	r.Get("/contact/{contactID}/payment", handlers.GetAllPaymentsByContactID)
 
 	// CRUD endpoints for insured payment
-	// r.Post("/insured/{id}/payment-methods", handlers.CreatePaymentMethodForInsuredHandler)
-	// r.Put("/insured/{id}/payment-methods/{methodId}", handlers.UpdatePaymentMethodForInsuredHandler)
-	// r.Delete("/insured/{id}/payment-methods/{methodId}", handlers.DeletePaymentMethodForInsuredHandler)
-	// r.Get("/insured/{id}/payment-methods/{methodId}", handlers.GetPaymentMethodForInsuredHandlerByMethodID)
-	// r.Get("/insured/{id}/payment-methods", handlers.GetAllPaymentMethodsForInsuredHandler)
+	r.Post("/insured/{insuredID}/payment", handlers.CreateNewPaymentByInsuredID)
+	r.Put("/insured/{insuredID}/payment/{paymentID}", handlers.UpdatePaymentByPaymentAndInsuredID)
+	r.Delete("/insured/{insuredID}/payment/{paymentID}", handlers.DeletePaymentByPaymentAndInsuredID)
+	r.Get("/insured/{insuredID}/payment/{paymentID}", handlers.GetPaymentByPaymentAndInsuredID)
+	r.Get("/insured/{insuredID}/payment", handlers.GetAllPaymentsByInsuredID)
 
 	// Run the application
 	log.Fatalln(http.ListenAndServe(":"+appPort, r))

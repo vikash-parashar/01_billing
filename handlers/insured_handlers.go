@@ -1,7 +1,7 @@
+// handlers.go
 package handlers
 
 import (
-	"database/sql"
 	"encoding/json"
 	"net/http"
 	"strconv"
@@ -11,96 +11,202 @@ import (
 	"github.com/vikash-parashar/01_billing/models"
 )
 
-func GetAllInsuredHandler(w http.ResponseWriter, r *http.Request) {
-	insuredList, err := controllers.GetAllInsured()
+func GetAllInsured(w http.ResponseWriter, r *http.Request) {
+	insureds, err := controllers.GetAllInsureds()
 	if err != nil {
-		http.Error(w, "Failed to fetch insured list", http.StatusInternalServerError)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(insuredList)
+	json.NewEncoder(w).Encode(insureds)
 }
 
-func CreateInsuredHandler(w http.ResponseWriter, r *http.Request) {
+func CreateNewInsured(w http.ResponseWriter, r *http.Request) {
 	var insured models.Insured
 	if err := json.NewDecoder(r.Body).Decode(&insured); err != nil {
-		http.Error(w, "Invalid request payload", http.StatusBadRequest)
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	defer r.Body.Close()
 
-	id, err := controllers.CreateInsured(insured)
+	newInsured, err := controllers.CreateInsured(insured)
 	if err != nil {
-		http.Error(w, "Failed to create insured", http.StatusInternalServerError)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	insured.ID = id
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(newInsured)
+}
+
+func GetInsuredByInsuredID(w http.ResponseWriter, r *http.Request) {
+	insuredIDStr := chi.URLParam(r, "insuredID")
+	insuredID, err := strconv.Atoi(insuredIDStr)
+	if err != nil {
+		http.Error(w, "Invalid insured ID", http.StatusBadRequest)
+		return
+	}
+
+	insured, err := controllers.GetInsuredByID(insuredID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusNotFound)
+		return
+	}
+
 	json.NewEncoder(w).Encode(insured)
 }
 
-func GetInsuredByIDHandler(w http.ResponseWriter, r *http.Request) {
-	idStr := chi.URLParam(r, "id")
-	id, err := strconv.Atoi(idStr)
+func UpdateInsuredByInsuredID(w http.ResponseWriter, r *http.Request) {
+	insuredIDStr := chi.URLParam(r, "insuredID")
+	insuredID, err := strconv.Atoi(insuredIDStr)
 	if err != nil {
 		http.Error(w, "Invalid insured ID", http.StatusBadRequest)
 		return
 	}
 
-	insured, err := controllers.GetInsuredByID(id)
-	if err != nil {
-		if err == sql.ErrNoRows {
-			http.Error(w, "Insured not found", http.StatusNotFound)
-			return
-		}
-		http.Error(w, "Failed to get insured", http.StatusInternalServerError)
+	var updatedInsured models.Insured
+	if err := json.NewDecoder(r.Body).Decode(&updatedInsured); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
+	insured, err := controllers.UpdateInsuredByID(insuredID, updatedInsured)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusNotFound)
+		return
+	}
+
 	json.NewEncoder(w).Encode(insured)
 }
 
-func UpdateInsuredByIDHandler(w http.ResponseWriter, r *http.Request) {
-	idStr := chi.URLParam(r, "id")
-	id, err := strconv.Atoi(idStr)
+func DeleteInsuredByInsuredID(w http.ResponseWriter, r *http.Request) {
+	insuredIDStr := chi.URLParam(r, "insuredID")
+	insuredID, err := strconv.Atoi(insuredIDStr)
 	if err != nil {
 		http.Error(w, "Invalid insured ID", http.StatusBadRequest)
+		return
+	}
+
+	err = controllers.DeleteInsuredByID(insuredID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusNotFound)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+}
+
+func GetAllInsuredByContactID(w http.ResponseWriter, r *http.Request) {
+	contactIDStr := chi.URLParam(r, "contactID")
+	contactID, err := strconv.Atoi(contactIDStr)
+	if err != nil {
+		http.Error(w, "Invalid contact ID", http.StatusBadRequest)
+		return
+	}
+
+	insureds, err := controllers.GetAllInsuredsByContactID(contactID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	json.NewEncoder(w).Encode(insureds)
+}
+
+func CreateNewInsuredByContactID(w http.ResponseWriter, r *http.Request) {
+	contactIDStr := chi.URLParam(r, "contactID")
+	contactID, err := strconv.Atoi(contactIDStr)
+	if err != nil {
+		http.Error(w, "Invalid contact ID", http.StatusBadRequest)
 		return
 	}
 
 	var insured models.Insured
 	if err := json.NewDecoder(r.Body).Decode(&insured); err != nil {
-		http.Error(w, "Invalid request payload", http.StatusBadRequest)
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	defer r.Body.Close()
 
-	err = controllers.UpdateInsuredByID(id, insured)
+	newInsured, err := controllers.CreateInsuredByContactID(contactID, insured)
 	if err != nil {
-		http.Error(w, "Failed to update insured", http.StatusInternalServerError)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(newInsured)
 }
 
-func DeleteInsuredByIDHandler(w http.ResponseWriter, r *http.Request) {
-	idStr := chi.URLParam(r, "id")
-	id, err := strconv.Atoi(idStr)
+func GetInsuredByContactAndInsuredID(w http.ResponseWriter, r *http.Request) {
+	contactIDStr := chi.URLParam(r, "contactID")
+	contactID, err := strconv.Atoi(contactIDStr)
+	if err != nil {
+		http.Error(w, "Invalid contact ID", http.StatusBadRequest)
+		return
+	}
+
+	insuredIDStr := chi.URLParam(r, "insuredID")
+	insuredID, err := strconv.Atoi(insuredIDStr)
 	if err != nil {
 		http.Error(w, "Invalid insured ID", http.StatusBadRequest)
 		return
 	}
 
-	err = controllers.DeleteInsuredByID(id)
+	insured, err := controllers.GetInsuredByContactAndInsuredID(contactID, insuredID)
 	if err != nil {
-		http.Error(w, "Failed to delete insured", http.StatusInternalServerError)
+		http.Error(w, err.Error(), http.StatusNotFound)
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(insured)
+}
+
+func UpdateInsuredByContactAndInsuredID(w http.ResponseWriter, r *http.Request) {
+	contactIDStr := chi.URLParam(r, "contactID")
+	contactID, err := strconv.Atoi(contactIDStr)
+	if err != nil {
+		http.Error(w, "Invalid contact ID", http.StatusBadRequest)
+		return
+	}
+
+	insuredIDStr := chi.URLParam(r, "insuredID")
+	insuredID, err := strconv.Atoi(insuredIDStr)
+	if err != nil {
+		http.Error(w, "Invalid insured ID", http.StatusBadRequest)
+		return
+	}
+
+	var updatedInsured models.Insured
+	if err := json.NewDecoder(r.Body).Decode(&updatedInsured); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	insured, err := controllers.UpdateInsuredByContactAndInsuredID(contactID, insuredID, updatedInsured)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusNotFound)
+		return
+	}
+
+	json.NewEncoder(w).Encode(insured)
+}
+
+func DeleteInsuredByContactAndInsuredID(w http.ResponseWriter, r *http.Request) {
+	contactIDStr := chi.URLParam(r, "contactID")
+	contactID, err := strconv.Atoi(contactIDStr)
+	if err != nil {
+		http.Error(w, "Invalid contact ID", http.StatusBadRequest)
+		return
+	}
+
+	insuredIDStr := chi.URLParam(r, "insuredID")
+	insuredID, err := strconv.Atoi(insuredIDStr)
+	if err != nil {
+		http.Error(w, "Invalid insured ID", http.StatusBadRequest)
+		return
+	}
+
+	err = controllers.DeleteInsuredByContactAndInsuredID(contactID, insuredID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusNotFound)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
 }

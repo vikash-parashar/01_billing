@@ -1,21 +1,20 @@
+// controllers.go
 package controllers
 
 import (
 	"database/sql"
-	"errors"
-	"log"
+	"time"
 
-	"github.com/vikash-parashar/01_billing/config"
+	_ "github.com/lib/pq"
 	"github.com/vikash-parashar/01_billing/models"
 )
 
-// GetAllContacts retrieves all contacts from the database.
+var db *sql.DB // Initialize your PostgreSQL database connection
+
 func GetAllContacts() ([]models.Contact, error) {
 	var contacts []models.Contact
-
-	rows, err := config.DB.Query("SELECT * FROM contacts")
+	rows, err := db.Query("SELECT * FROM contacts")
 	if err != nil {
-		log.Println("Error querying contacts:", err)
 		return nil, err
 	}
 	defer rows.Close()
@@ -23,12 +22,19 @@ func GetAllContacts() ([]models.Contact, error) {
 	for rows.Next() {
 		var contact models.Contact
 		err := rows.Scan(
-			&contact.ID, &contact.ContactType, &contact.EmailAddress, &contact.FullName,
-			&contact.LocationID, &contact.OwnerUserID, &contact.PhoneNumber,
-			&contact.PipelineID, &contact.PipelineStageID, &contact.CreatedAt, &contact.UpdatedAt,
+			&contact.ID,
+			&contact.ContactType,
+			&contact.EmailAddress,
+			&contact.FullName,
+			&contact.LocationID,
+			&contact.OwnerUserID,
+			&contact.PhoneNumber,
+			&contact.PipelineID,
+			&contact.PipelineStageID,
+			&contact.CreatedAt,
+			&contact.UpdatedAt,
 		)
 		if err != nil {
-			log.Println("Error scanning contact rows:", err)
 			return nil, err
 		}
 		contacts = append(contacts, contact)
@@ -37,78 +43,97 @@ func GetAllContacts() ([]models.Contact, error) {
 	return contacts, nil
 }
 
-// CreateContact creates a new contact in the database.
-func CreateContact(contact models.Contact) (string, error) {
-	var id string
-	err := config.DB.QueryRow("INSERT INTO contacts (contactType, emailAddress, fullName, locationID, ownerUserID, phoneNumber, pipelineID, pipelineStageID) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id",
-		contact.ContactType, contact.EmailAddress, contact.FullName, contact.LocationID,
-		contact.OwnerUserID, contact.PhoneNumber, contact.PipelineID, contact.PipelineStageID).Scan(&id)
-	if err != nil {
-		log.Println("Error creating contact:", err)
-		return "", err
-	}
+func CreateContact(contact models.Contact) (models.Contact, error) {
+	query := `
+		INSERT INTO contacts 
+		(contactType, emailAddress, fullName, locationID, ownerUserID, phoneNumber, pipelineID, pipelineStageID, created_at, updated_at) 
+		VALUES 
+		($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+		RETURNING id`
 
-	return id, nil
-}
+	err := db.QueryRow(
+		query,
+		contact.ContactType,
+		contact.EmailAddress,
+		contact.FullName,
+		contact.LocationID,
+		contact.OwnerUserID,
+		contact.PhoneNumber,
+		contact.PipelineID,
+		contact.PipelineStageID,
+		time.Now(), // created_at
+		time.Now(), // updated_at
+	).Scan(&contact.ID)
 
-// GetContactByID retrieves a specific contact by ID from the database.
-func GetContactByID(id string) (models.Contact, error) {
-	var contact models.Contact
-	err := config.DB.QueryRow("SELECT * FROM contacts WHERE id = $1", id).
-		Scan(&contact.ID, &contact.ContactType, &contact.EmailAddress, &contact.FullName,
-			&contact.LocationID, &contact.OwnerUserID, &contact.PhoneNumber,
-			&contact.PipelineID, &contact.PipelineStageID, &contact.CreatedAt, &contact.UpdatedAt)
 	if err != nil {
-		log.Println("Error fetching contact by ID:", err)
-		if errors.Is(err, sql.ErrNoRows) {
-			return models.Contact{}, errors.New("contact not found")
-		}
 		return models.Contact{}, err
 	}
 
 	return contact, nil
 }
 
-// UpdateContactByID updates a specific contact by ID in the database.
-func UpdateContactByID(id string, updatedContact models.Contact) error {
-	result, err := config.DB.Exec("UPDATE contacts SET contactType=$1, emailAddress=$2, fullName=$3, locationID=$4, ownerUserID=$5, phoneNumber=$6, pipelineID=$7, pipelineStageID=$8, updated_at=now() WHERE id=$9",
-		updatedContact.ContactType, updatedContact.EmailAddress, updatedContact.FullName, updatedContact.LocationID,
-		updatedContact.OwnerUserID, updatedContact.PhoneNumber, updatedContact.PipelineID, updatedContact.PipelineStageID, id)
+func GetContactByID(contactID int) (models.Contact, error) {
+	var contact models.Contact
+	err := db.QueryRow("SELECT * FROM contacts WHERE id = $1", contactID).Scan(
+		&contact.ID,
+		&contact.ContactType,
+		&contact.EmailAddress,
+		&contact.FullName,
+		&contact.LocationID,
+		&contact.OwnerUserID,
+		&contact.PhoneNumber,
+		&contact.PipelineID,
+		&contact.PipelineStageID,
+		&contact.CreatedAt,
+		&contact.UpdatedAt,
+	)
+
 	if err != nil {
-		log.Println("Error updating contact by ID:", err)
-		return err
+		return models.Contact{}, err
 	}
 
-	rowsAffected, err := result.RowsAffected()
-	if err != nil {
-		log.Println("Error getting rows affected:", err)
-		return err
-	}
-
-	if rowsAffected == 0 {
-		return errors.New("contact not found")
-	}
-
-	return nil
+	return contact, nil
 }
 
-// DeleteContactByID deletes a specific contact by ID from the database.
-func DeleteContactByID(id string) error {
-	result, err := config.DB.Exec("DELETE FROM contacts WHERE id = $1", id)
+func UpdateContactByID(contactID int, updatedContact models.Contact) (models.Contact, error) {
+	query := `
+		UPDATE contacts 
+		SET 
+			contactType=$1, 
+			emailAddress=$2, 
+			fullName=$3, 
+			locationID=$4, 
+			ownerUserID=$5, 
+			phoneNumber=$6, 
+			pipelineID=$7, 
+			pipelineStageID=$8, 
+			updated_at=$9
+		WHERE 
+			id=$10
+		RETURNING id`
+
+	err := db.QueryRow(
+		query,
+		updatedContact.ContactType,
+		updatedContact.EmailAddress,
+		updatedContact.FullName,
+		updatedContact.LocationID,
+		updatedContact.OwnerUserID,
+		updatedContact.PhoneNumber,
+		updatedContact.PipelineID,
+		updatedContact.PipelineStageID,
+		time.Now(), // updated_at
+		contactID,
+	).Scan(&updatedContact.ID)
+
 	if err != nil {
-		log.Println("Error deleting contact by ID:", err)
-		return err
+		return models.Contact{}, err
 	}
 
-	rowsAffected, err := result.RowsAffected()
-	if err != nil {
-		log.Println("Error getting rows affected:", err)
-		return err
-	}
+	return updatedContact, nil
+}
 
-	if rowsAffected == 0 {
-		return errors.New("contact not found")
-	}
-
-	return nil
+func DeleteContactByID(contactID int) error {
+	_, err := db.Exec("DELETE FROM contacts WHERE id = $1", contactID)
+	return err
 }
