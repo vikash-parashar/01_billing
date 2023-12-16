@@ -4,6 +4,21 @@ import (
 	"time"
 )
 
+const (
+	PaymentStatusActive   = "Active"
+	PaymentStatusInactive = "Inactive"
+)
+
+// RelationshipToInsured represents the possible relationship options.
+type RelationshipToInsuredType string
+
+const (
+	Self   RelationshipToInsuredType = "self"
+	Spouse RelationshipToInsuredType = "spouse"
+	Child  RelationshipToInsuredType = "child"
+	Others RelationshipToInsuredType = "others"
+)
+
 // Payment struct to represent the database model
 type Payment struct {
 	// @json:id
@@ -31,7 +46,7 @@ type Payment struct {
 	BillingID string `json:"billing_id"`
 
 	// @json:relationship_to_insured
-	RelationshipToInsured string `json:"relationship_to_insured"`
+	RelationshipToInsured RelationshipToInsuredType `json:"relationship_to_insured"`
 
 	// @json:insured_full_name
 	InsuredFullName string `json:"insured_full_name"`
